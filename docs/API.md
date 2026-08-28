@@ -38,3 +38,13 @@
 | `batchTraceable` | boolean | 批次可追溯 |
 
 接口统一返回 `ApiResponse`；业务冲突使用 HTTP 409，参数错误使用 400，未认证使用 401，无权限使用 403。
+
+## 库存核心 API
+
+| 方法 | 路径 | 说明 |
+| --- | --- | --- |
+| POST/GET | `/core/psi/balances` | 建立和查询 SKU 仓库库存余额 |
+| POST/GET | `/core/psi/movements` | 幂等执行库存动作并查询流水 |
+| POST | `/core/psi/transfers` | 在同一事务内执行跨仓调拨 |
+
+库存动作支持 `PURCHASE_RECEIPT`、`SALES_ISSUE`、`PURCHASE_RETURN`、`SALES_RETURN`、`RESERVE`、`RELEASE`、`ADJUSTMENT_IN/OUT` 和 `TRANSFER_IN/OUT`。
