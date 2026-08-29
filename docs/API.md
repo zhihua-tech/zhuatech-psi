@@ -46,5 +46,8 @@
 | POST/GET | `/core/psi/balances` | 建立和查询 SKU 仓库库存余额 |
 | POST/GET | `/core/psi/movements` | 幂等执行库存动作并查询流水 |
 | POST | `/core/psi/transfers` | 在同一事务内执行跨仓调拨 |
+| POST/GET | `/core/psi/counts` | 新建和查询库存盘点单 |
+| POST | `/core/psi/counts/{id}/submit` | 提交盘点差异复核 |
+| POST | `/admin/core/psi/counts/{id}/review` | 管理员批准调账或退回盘点 |
 
 库存动作支持 `PURCHASE_RECEIPT`、`SALES_ISSUE`、`PURCHASE_RETURN`、`SALES_RETURN`、`RESERVE`、`RELEASE`、`ADJUSTMENT_IN/OUT` 和 `TRANSFER_IN/OUT`。

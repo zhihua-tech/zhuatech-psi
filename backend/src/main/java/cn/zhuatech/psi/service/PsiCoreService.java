@@ -78,6 +78,56 @@ public class PsiCoreService {
         return new TransferResult(out, in);
     }
 
+    @Transactional
+    public InventoryCount createCount(CreateCountRequest request) {
+        if (!em.createQuery("select c from PsiInventoryCount c where c.countNo=:no", InventoryCount.class)
+            .setParameter("no", request.countNo()).getResultList().isEmpty()) throw conflict("盘点单号已存在");
+        InventoryBalance balance = balanceForUpdate(request.sku(), request.warehouse());
+        InventoryCount count = new InventoryCount(request.countNo(), balance.sku, balance.warehouse,
+            balance.onHand, request.countedQuantity(), operator());
+        em.persist(count);
+        return count;
+    }
+
+    public List<InventoryCount> counts(String status) {
+        return em.createQuery("select c from PsiInventoryCount c where (:status is null or c.status=:status) order by c.createdAt desc", InventoryCount.class)
+            .setParameter("status", status == null || status.isBlank() ? null : status).getResultList();
+    }
+
+    @Transactional
+    public InventoryCount submitCount(Long id) {
+        InventoryCount count = countForUpdate(id);
+        if (!"DRAFT".equals(count.status)) throw conflict("仅草稿盘点单可以提交");
+        count.status = "PENDING_REVIEW";
+        count.submittedBy = operator();
+        count.submittedAt = LocalDateTime.now();
+        return count;
+    }
+
+    @Transactional
+    public InventoryCount reviewCount(Long id, CountReviewRequest request) {
+        InventoryCount count = countForUpdate(id);
+        if (!"PENDING_REVIEW".equals(count.status)) throw conflict("仅待复核盘点单可以审批");
+        if (operator().equals(count.submittedBy)) throw conflict("盘点提交人与复核人必须职责分离");
+        count.reviewRemark = request.remark();
+        count.reviewedBy = operator();
+        count.reviewedAt = LocalDateTime.now();
+        if ("REJECT".equals(request.decision())) {
+            count.status = "REJECTED";
+            return count;
+        }
+        InventoryBalance balance = balanceForUpdate(count.sku, count.warehouse);
+        if (balance.onHand != count.bookQuantity) throw conflict("盘点期间库存已变化，请重新盘点后提交");
+        int variance = count.variance();
+        if (variance != 0) {
+            InventoryMovement movement = post(new MovementRequest("COUNT-" + count.id, count.countNo,
+                variance > 0 ? "ADJUSTMENT_IN" : "ADJUSTMENT_OUT", count.sku, count.warehouse, Math.abs(variance)));
+            count.movementId = movement.id;
+        }
+        count.status = "APPROVED";
+        return count;
+    }
+
     private List<InventoryBalance> findBalance(String sku, String warehouse) {
         return em.createQuery("select b from PsiInventoryBalance b where b.sku=:sku and b.warehouse=:warehouse", InventoryBalance.class)
             .setParameter("sku", sku).setParameter("warehouse", warehouse).getResultList();
@@ -88,6 +138,12 @@ public class PsiCoreService {
             .setParameter("sku", sku).setParameter("warehouse", warehouse).setLockMode(LockModeType.PESSIMISTIC_WRITE).getResultList();
         if (result.isEmpty()) throw new ResponseStatusException(HttpStatus.NOT_FOUND, "库存台账不存在");
         return result.getFirst();
+    }
+
+    private InventoryCount countForUpdate(Long id) {
+        InventoryCount count = em.find(InventoryCount.class, id, LockModeType.PESSIMISTIC_WRITE);
+        if (count == null) throw new ResponseStatusException(HttpStatus.NOT_FOUND, "盘点单不存在");
+        return count;
     }
 
     private String operator() {
@@ -106,6 +162,10 @@ public class PsiCoreService {
                                   @NotBlank @Size(max=50) String sku, @NotBlank @Size(max=50) String fromWarehouse,
                                   @NotBlank @Size(max=50) String toWarehouse, @Positive int quantity) {}
     public record TransferResult(InventoryMovement outbound, InventoryMovement inbound) {}
+    public record CreateCountRequest(@NotBlank @Size(max=50) String countNo, @NotBlank @Size(max=50) String sku,
+                                     @NotBlank @Size(max=50) String warehouse, @PositiveOrZero int countedQuantity) {}
+    public record CountReviewRequest(@NotNull @Pattern(regexp="APPROVE|REJECT") String decision,
+                                     @NotBlank @Size(max=500) String remark) {}
 
     @Entity(name="PsiInventoryBalance")
     @Table(name="psi_inventory_balances", uniqueConstraints=@UniqueConstraint(columnNames={"sku","warehouse"}))
@@ -137,5 +197,30 @@ public class PsiCoreService {
         @Column(nullable=false) public LocalDateTime createdAt;
         protected InventoryMovement() {}
         InventoryMovement(String key,String referenceNo,String type,String sku,String warehouse,int quantity,int beforeOnHand,int afterOnHand,int beforeReserved,int afterReserved,String operator){this.idempotencyKey=key;this.referenceNo=referenceNo;this.type=type;this.sku=sku;this.warehouse=warehouse;this.quantity=quantity;this.beforeOnHand=beforeOnHand;this.afterOnHand=afterOnHand;this.beforeReserved=beforeReserved;this.afterReserved=afterReserved;this.operatorName=operator;this.createdAt=LocalDateTime.now();}
+    }
+
+    @Entity(name="PsiInventoryCount")
+    @Table(name="psi_inventory_counts", uniqueConstraints=@UniqueConstraint(columnNames="countNo"))
+    public static class InventoryCount {
+        @Id @GeneratedValue(strategy=GenerationType.IDENTITY) public Long id;
+        @Column(nullable=false,length=50) public String countNo;
+        @Column(nullable=false,length=50) public String sku;
+        @Column(nullable=false,length=50) public String warehouse;
+        public int bookQuantity;
+        public int countedQuantity;
+        @Column(nullable=false,length=30) public String status;
+        @Column(nullable=false,length=80) public String createdBy;
+        @Column(length=80) public String submittedBy;
+        @Column(length=80) public String reviewedBy;
+        @Column(length=500) public String reviewRemark;
+        public Long movementId;
+        @Column(nullable=false) public LocalDateTime createdAt;
+        public LocalDateTime submittedAt;
+        public LocalDateTime reviewedAt;
+        @Version public long version;
+        protected InventoryCount() {}
+        InventoryCount(String no,String sku,String warehouse,int book,int counted,String by){this.countNo=no;this.sku=sku;this.warehouse=warehouse;this.bookQuantity=book;this.countedQuantity=counted;this.createdBy=by;this.status="DRAFT";this.createdAt=LocalDateTime.now();}
+        public int getVariance(){return variance();}
+        int variance(){return countedQuantity-bookQuantity;}
     }
 }
