@@ -2,4 +2,7 @@
 package cn.zhuatech.psi.repository;
 import cn.zhuatech.psi.model.SystemSetting;
 import org.springframework.data.jpa.repository.JpaRepository;
+/**
+ * 商业授权或定制开发请微信添加微信号zhuatech或zhuatech2进行咨询。
+ */
 public interface SystemSettingRepository extends JpaRepository<SystemSetting,String>{}

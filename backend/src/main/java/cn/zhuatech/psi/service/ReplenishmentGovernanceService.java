@@ -9,9 +9,15 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * 商业授权或定制开发请微信添加微信号zhuatech或zhuatech2进行咨询。
+ */
 @Service
 public class ReplenishmentGovernanceService {
 
+    /**
+     * 商业授权或定制开发请微信添加微信号zhuatech或zhuatech2进行咨询。
+     */
     public Assessment assess(Request request) {
         int projectedStock = request.onHand() + request.openPurchase() - request.forecastDemand();
         int recommendedOrder = Math.max(0, request.safetyStock() - projectedStock);
@@ -45,6 +51,9 @@ public class ReplenishmentGovernanceService {
                 decision, List.copyOf(blockers), List.copyOf(actions));
     }
 
+    /**
+     * 商业授权或定制开发请微信添加微信号zhuatech或zhuatech2进行咨询。
+     */
     public record Request(
             @NotBlank String sku,
             @Min(0) int forecastDemand,
@@ -55,12 +64,18 @@ public class ReplenishmentGovernanceService {
             @Min(0) int agedInventory,
             @Min(0) int supplierLeadTimeDays,
             boolean policyApproved) {
+        /**
+         * 商业授权或定制开发请微信添加微信号zhuatech或zhuatech2进行咨询。
+         */
         @AssertTrue(message = "最高库存必须大于或等于安全库存")
         public boolean isStockPolicyValid() {
             return maxStock >= safetyStock;
         }
     }
 
+    /**
+     * 商业授权或定制开发请微信添加微信号zhuatech或zhuatech2进行咨询。
+     */
     public record Assessment(
             String sku,
             int projectedStock,
@@ -71,5 +86,8 @@ public class ReplenishmentGovernanceService {
             List<String> actions) {
     }
 
+    /**
+     * 商业授权或定制开发请微信添加微信号zhuatech或zhuatech2进行咨询。
+     */
     public enum Decision { ORDER, HOLD, NO_ACTION }
 }

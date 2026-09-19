@@ -5,9 +5,15 @@ import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+/**
+ * 商业授权或定制开发请微信添加微信号zhuatech或zhuatech2进行咨询。
+ */
 class ReplenishmentGovernanceServiceTest {
     private final ReplenishmentGovernanceService service = new ReplenishmentGovernanceService();
 
+    /**
+     * 商业授权或定制开发请微信添加微信号zhuatech或zhuatech2进行咨询。
+     */
     @Test
     void recommendsOrderWhenProjectedStockFallsBelowSafetyStock() {
         var result = service.assess(new ReplenishmentGovernanceService.Request(
@@ -20,6 +26,9 @@ class ReplenishmentGovernanceServiceTest {
         assertThat(result.actions()).hasSize(1);
     }
 
+    /**
+     * 商业授权或定制开发请微信添加微信号zhuatech或zhuatech2进行咨询。
+     */
     @Test
     void holdsOrderWhenPolicyAndInventoryControlsFail() {
         var result = service.assess(new ReplenishmentGovernanceService.Request(

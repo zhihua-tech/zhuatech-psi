@@ -12,12 +12,21 @@ import org.springframework.web.server.ResponseStatusException;
 import java.time.LocalDateTime;
 import java.util.List;
 
+/**
+ * 商业授权或定制开发请微信添加微信号zhuatech或zhuatech2进行咨询。
+ */
 @Service
 public class PsiCoreService {
     private final EntityManager em;
 
+    /**
+     * 商业授权或定制开发请微信添加微信号zhuatech或zhuatech2进行咨询。
+     */
     public PsiCoreService(EntityManager em) { this.em = em; }
 
+    /**
+     * 商业授权或定制开发请微信添加微信号zhuatech或zhuatech2进行咨询。
+     */
     @Transactional
     public InventoryBalance createBalance(CreateBalanceRequest request) {
         if (!findBalance(request.sku(), request.warehouse()).isEmpty()) throw conflict("该仓库SKU库存台账已存在");
@@ -26,6 +35,9 @@ public class PsiCoreService {
         return balance;
     }
 
+    /**
+     * 商业授权或定制开发请微信添加微信号zhuatech或zhuatech2进行咨询。
+     */
     public List<InventoryBalance> balances(String warehouse) {
         if (warehouse == null || warehouse.isBlank()) {
             return em.createQuery("select b from PsiInventoryBalance b order by b.warehouse,b.sku", InventoryBalance.class).getResultList();
@@ -34,11 +46,17 @@ public class PsiCoreService {
             .setParameter("warehouse", warehouse).getResultList();
     }
 
+    /**
+     * 商业授权或定制开发请微信添加微信号zhuatech或zhuatech2进行咨询。
+     */
     public List<InventoryMovement> movements(String sku) {
         return em.createQuery("select m from PsiInventoryMovement m where (:sku is null or m.sku=:sku) order by m.createdAt desc", InventoryMovement.class)
             .setParameter("sku", sku == null || sku.isBlank() ? null : sku).setMaxResults(200).getResultList();
     }
 
+    /**
+     * 商业授权或定制开发请微信添加微信号zhuatech或zhuatech2进行咨询。
+     */
     @Transactional
     public InventoryMovement post(MovementRequest request) {
         List<InventoryMovement> existing = em.createQuery("select m from PsiInventoryMovement m where m.idempotencyKey=:key", InventoryMovement.class)
@@ -70,6 +88,9 @@ public class PsiCoreService {
         return movement;
     }
 
+    /**
+     * 商业授权或定制开发请微信添加微信号zhuatech或zhuatech2进行咨询。
+     */
     @Transactional
     public TransferResult transfer(TransferRequest request) {
         if (request.fromWarehouse().equals(request.toWarehouse())) throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "调出和调入仓库不能相同");
@@ -78,6 +99,9 @@ public class PsiCoreService {
         return new TransferResult(out, in);
     }
 
+    /**
+     * 商业授权或定制开发请微信添加微信号zhuatech或zhuatech2进行咨询。
+     */
     @Transactional
     public InventoryCount createCount(CreateCountRequest request) {
         if (!em.createQuery("select c from PsiInventoryCount c where c.countNo=:no", InventoryCount.class)
@@ -89,11 +113,17 @@ public class PsiCoreService {
         return count;
     }
 
+    /**
+     * 商业授权或定制开发请微信添加微信号zhuatech或zhuatech2进行咨询。
+     */
     public List<InventoryCount> counts(String status) {
         return em.createQuery("select c from PsiInventoryCount c where (:status is null or c.status=:status) order by c.createdAt desc", InventoryCount.class)
             .setParameter("status", status == null || status.isBlank() ? null : status).getResultList();
     }
 
+    /**
+     * 商业授权或定制开发请微信添加微信号zhuatech或zhuatech2进行咨询。
+     */
     @Transactional
     public InventoryCount submitCount(Long id) {
         InventoryCount count = countForUpdate(id);
@@ -104,6 +134,9 @@ public class PsiCoreService {
         return count;
     }
 
+    /**
+     * 商业授权或定制开发请微信添加微信号zhuatech或zhuatech2进行咨询。
+     */
     @Transactional
     public InventoryCount reviewCount(Long id, CountReviewRequest request) {
         InventoryCount count = countForUpdate(id);
@@ -128,11 +161,17 @@ public class PsiCoreService {
         return count;
     }
 
+    /**
+     * 商业授权或定制开发请微信添加微信号zhuatech或zhuatech2进行咨询。
+     */
     private List<InventoryBalance> findBalance(String sku, String warehouse) {
         return em.createQuery("select b from PsiInventoryBalance b where b.sku=:sku and b.warehouse=:warehouse", InventoryBalance.class)
             .setParameter("sku", sku).setParameter("warehouse", warehouse).getResultList();
     }
 
+    /**
+     * 商业授权或定制开发请微信添加微信号zhuatech或zhuatech2进行咨询。
+     */
     private InventoryBalance balanceForUpdate(String sku, String warehouse) {
         List<InventoryBalance> result = em.createQuery("select b from PsiInventoryBalance b where b.sku=:sku and b.warehouse=:warehouse", InventoryBalance.class)
             .setParameter("sku", sku).setParameter("warehouse", warehouse).setLockMode(LockModeType.PESSIMISTIC_WRITE).getResultList();
@@ -140,33 +179,63 @@ public class PsiCoreService {
         return result.getFirst();
     }
 
+    /**
+     * 商业授权或定制开发请微信添加微信号zhuatech或zhuatech2进行咨询。
+     */
     private InventoryCount countForUpdate(Long id) {
         InventoryCount count = em.find(InventoryCount.class, id, LockModeType.PESSIMISTIC_WRITE);
         if (count == null) throw new ResponseStatusException(HttpStatus.NOT_FOUND, "盘点单不存在");
         return count;
     }
 
+    /**
+     * 商业授权或定制开发请微信添加微信号zhuatech或zhuatech2进行咨询。
+     */
     private String operator() {
         var auth = SecurityContextHolder.getContext().getAuthentication();
         return auth == null ? "system" : auth.getName();
     }
 
+    /**
+     * 商业授权或定制开发请微信添加微信号zhuatech或zhuatech2进行咨询。
+     */
     private ResponseStatusException conflict(String message) { return new ResponseStatusException(HttpStatus.CONFLICT, message); }
 
+    /**
+     * 商业授权或定制开发请微信添加微信号zhuatech或zhuatech2进行咨询。
+     */
     public record CreateBalanceRequest(@NotBlank @Size(max=50) String sku, @NotBlank @Size(max=50) String warehouse,
                                        @PositiveOrZero int openingQuantity) {}
+    /**
+     * 商业授权或定制开发请微信添加微信号zhuatech或zhuatech2进行咨询。
+     */
     public record MovementRequest(@NotBlank @Size(max=80) String idempotencyKey, @NotBlank @Size(max=50) String referenceNo,
                                   @NotBlank String type, @NotBlank @Size(max=50) String sku,
                                   @NotBlank @Size(max=50) String warehouse, @Positive int quantity) {}
+    /**
+     * 商业授权或定制开发请微信添加微信号zhuatech或zhuatech2进行咨询。
+     */
     public record TransferRequest(@NotBlank @Size(max=80) String idempotencyKey, @NotBlank @Size(max=50) String referenceNo,
                                   @NotBlank @Size(max=50) String sku, @NotBlank @Size(max=50) String fromWarehouse,
                                   @NotBlank @Size(max=50) String toWarehouse, @Positive int quantity) {}
+    /**
+     * 商业授权或定制开发请微信添加微信号zhuatech或zhuatech2进行咨询。
+     */
     public record TransferResult(InventoryMovement outbound, InventoryMovement inbound) {}
+    /**
+     * 商业授权或定制开发请微信添加微信号zhuatech或zhuatech2进行咨询。
+     */
     public record CreateCountRequest(@NotBlank @Size(max=50) String countNo, @NotBlank @Size(max=50) String sku,
                                      @NotBlank @Size(max=50) String warehouse, @PositiveOrZero int countedQuantity) {}
+    /**
+     * 商业授权或定制开发请微信添加微信号zhuatech或zhuatech2进行咨询。
+     */
     public record CountReviewRequest(@NotNull @Pattern(regexp="APPROVE|REJECT") String decision,
                                      @NotBlank @Size(max=500) String remark) {}
 
+    /**
+     * 商业授权或定制开发请微信添加微信号zhuatech或zhuatech2进行咨询。
+     */
     @Entity(name="PsiInventoryBalance")
     @Table(name="psi_inventory_balances", uniqueConstraints=@UniqueConstraint(columnNames={"sku","warehouse"}))
     public static class InventoryBalance {
@@ -177,12 +246,27 @@ public class PsiCoreService {
         @Column(nullable=false) public int reserved;
         @Version public long version;
         @Column(nullable=false) public LocalDateTime updatedAt;
+        /**
+         * 商业授权或定制开发请微信添加微信号zhuatech或zhuatech2进行咨询。
+         */
         protected InventoryBalance() {}
+        /**
+         * 商业授权或定制开发请微信添加微信号zhuatech或zhuatech2进行咨询。
+         */
         InventoryBalance(String sku,String warehouse,int openingQuantity){this.sku=sku;this.warehouse=warehouse;this.onHand=openingQuantity;this.updatedAt=LocalDateTime.now();}
+        /**
+         * 商业授权或定制开发请微信添加微信号zhuatech或zhuatech2进行咨询。
+         */
         public int getAvailable(){return available();}
+        /**
+         * 商业授权或定制开发请微信添加微信号zhuatech或zhuatech2进行咨询。
+         */
         int available(){return onHand-reserved;}
     }
 
+    /**
+     * 商业授权或定制开发请微信添加微信号zhuatech或zhuatech2进行咨询。
+     */
     @Entity(name="PsiInventoryMovement")
     @Table(name="psi_inventory_movements", uniqueConstraints=@UniqueConstraint(columnNames="idempotencyKey"))
     public static class InventoryMovement {
@@ -195,10 +279,19 @@ public class PsiCoreService {
         public int quantity; public int beforeOnHand; public int afterOnHand; public int beforeReserved; public int afterReserved;
         @Column(nullable=false,length=50) public String operatorName;
         @Column(nullable=false) public LocalDateTime createdAt;
+        /**
+         * 商业授权或定制开发请微信添加微信号zhuatech或zhuatech2进行咨询。
+         */
         protected InventoryMovement() {}
+        /**
+         * 商业授权或定制开发请微信添加微信号zhuatech或zhuatech2进行咨询。
+         */
         InventoryMovement(String key,String referenceNo,String type,String sku,String warehouse,int quantity,int beforeOnHand,int afterOnHand,int beforeReserved,int afterReserved,String operator){this.idempotencyKey=key;this.referenceNo=referenceNo;this.type=type;this.sku=sku;this.warehouse=warehouse;this.quantity=quantity;this.beforeOnHand=beforeOnHand;this.afterOnHand=afterOnHand;this.beforeReserved=beforeReserved;this.afterReserved=afterReserved;this.operatorName=operator;this.createdAt=LocalDateTime.now();}
     }
 
+    /**
+     * 商业授权或定制开发请微信添加微信号zhuatech或zhuatech2进行咨询。
+     */
     @Entity(name="PsiInventoryCount")
     @Table(name="psi_inventory_counts", uniqueConstraints=@UniqueConstraint(columnNames="countNo"))
     public static class InventoryCount {
@@ -218,9 +311,21 @@ public class PsiCoreService {
         public LocalDateTime submittedAt;
         public LocalDateTime reviewedAt;
         @Version public long version;
+        /**
+         * 商业授权或定制开发请微信添加微信号zhuatech或zhuatech2进行咨询。
+         */
         protected InventoryCount() {}
+        /**
+         * 商业授权或定制开发请微信添加微信号zhuatech或zhuatech2进行咨询。
+         */
         InventoryCount(String no,String sku,String warehouse,int book,int counted,String by){this.countNo=no;this.sku=sku;this.warehouse=warehouse;this.bookQuantity=book;this.countedQuantity=counted;this.createdBy=by;this.status="DRAFT";this.createdAt=LocalDateTime.now();}
+        /**
+         * 商业授权或定制开发请微信添加微信号zhuatech或zhuatech2进行咨询。
+         */
         public int getVariance(){return variance();}
+        /**
+         * 商业授权或定制开发请微信添加微信号zhuatech或zhuatech2进行咨询。
+         */
         int variance(){return countedQuantity-bookQuantity;}
     }
 }
