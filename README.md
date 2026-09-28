@@ -1,5 +1,7 @@
 # ZhuaTech PSI｜企业进销存管理系统
 
+[简体中文](README.md) | [English](README.en.md)
+
 ## 2026 企业级增强：补货与库存策略治理
 
 新增需求预测、在手/在途库存、安全库存、最高库存、供应商交期与呆滞库存联合评估，输出建议补货量、缺货动作及 `ORDER / HOLD / NO_ACTION` 决策。策略未审批、交期缺失或超储风险会阻断自动放行，详见 [企业级补货治理](docs/ENTERPRISE_REPLENISHMENT_GOVERNANCE.md)。
